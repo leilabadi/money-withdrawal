@@ -1,12 +1,10 @@
 ﻿using Moneybox.App.Domain.Model;
-using System;
 
-namespace Moneybox.App.DataAccess
+namespace Moneybox.App.DataAccess;
+
+public interface IAccountRepository
 {
-    public interface IAccountRepository
-    {
-        Account GetAccountById(Guid accountId);
+    Account GetAccountById(Guid accountId);
 
-        void Update(Account account);
-    }
+    void Update(Account account);
 }

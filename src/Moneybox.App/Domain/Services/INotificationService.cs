@@ -1,9 +1,8 @@
-﻿namespace Moneybox.App.Domain.Services
-{
-    public interface INotificationService
-    {
-        void NotifyApproachingPayInLimit(string emailAddress);
+﻿namespace Moneybox.App.Domain.Services;
 
-        void NotifyFundsLow(string emailAddress);
-    }
+public interface INotificationService
+{
+    void NotifyApproachingPayInLimit(string emailAddress);
+
+    void NotifyFundsLow(string emailAddress);
 }

@@ -1,19 +1,12 @@
-﻿using System;
+﻿namespace Moneybox.App.Domain.Model;
 
-namespace Moneybox.App.Domain.Model
+public class Account(Guid id, User user, decimal balance, decimal withdrawn, decimal paidIn)
 {
-    public class Account
-    {
-        public const decimal PayInLimit = 4000m;
+    public const decimal PayInLimit = 4000m;
 
-        public Guid Id { get; set; }
-
-        public User User { get; set; }
-
-        public decimal Balance { get; set; }
-
-        public decimal Withdrawn { get; set; }
-
-        public decimal PaidIn { get; set; }
-    }
+    public Guid Id { get; init; } = id;
+    public User User { get; init; } = user;
+    public decimal Balance { get; set; } = balance;
+    public decimal Withdrawn { get; set; } = withdrawn;
+    public decimal PaidIn { get; set; } = paidIn;
 }
