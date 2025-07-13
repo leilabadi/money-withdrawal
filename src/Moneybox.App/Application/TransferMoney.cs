@@ -1,9 +1,8 @@
-﻿using Moneybox.App.DataAccess;
-using Moneybox.App.Domain.Model;
+﻿using Moneybox.App.Domain.Model;
+using Moneybox.App.Domain.Repositories;
 using Moneybox.App.Domain.Services;
-using System;
 
-namespace Moneybox.App.Features
+namespace Moneybox.App.Application
 {
     public class TransferMoney(IAccountRepository accountRepository, INotificationService notificationService)
     {
@@ -18,7 +17,7 @@ namespace Moneybox.App.Features
                 throw new InvalidOperationException("Insufficient funds to make transfer");
             }
 
-            if (fromBalance < 500m)
+            if (fromBalance < Account.LowFundsThreshold)
             {
                 notificationService.NotifyFundsLow(from.User.Email);
             }
@@ -29,7 +28,7 @@ namespace Moneybox.App.Features
                 throw new InvalidOperationException("Account pay in limit reached");
             }
 
-            if (Account.PayInLimit - paidIn < 500m)
+            if (Account.PayInLimit - paidIn < Account.PayInWarningThreshold)
             {
                 notificationService.NotifyApproachingPayInLimit(to.User.Email);
             }

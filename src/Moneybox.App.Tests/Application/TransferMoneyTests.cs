@@ -1,10 +1,10 @@
-using Moneybox.App.DataAccess;
+using Moneybox.App.Application;
 using Moneybox.App.Domain.Model;
+using Moneybox.App.Domain.Repositories;
 using Moneybox.App.Domain.Services;
-using Moneybox.App.Features;
 using Moneybox.App.Tests.Common;
 
-namespace Moneybox.App.Tests.Features;
+namespace Moneybox.App.Tests.Application;
 
 public class TransferMoneyTests
 {
