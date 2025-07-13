@@ -26,7 +26,7 @@ public class WithdrawMoneyTests
         _withdrawMoney = new WithdrawMoney(_accountRepositoryMock.Object, _notificationServiceMock.Object);
     }
 
-    [Fact(Skip = "Functionality is not implemented.")]
+    [Fact]
     public void Execute_WhenWithdrawingMoney_AccountsShouldBeUpdated()
     {
         // Arrange
@@ -41,7 +41,7 @@ public class WithdrawMoneyTests
         _accountRepositoryMock.Verify(x => x.Update(It.Is<Account>(a => a.Matches(_sourceAccount.Id, 700, -withdrawAmount, 0))), Times.Once);
     }
 
-    [Fact(Skip = "Functionality is not implemented.")]
+    [Fact]
     public void Execute_WhenSourceAccountIsLowFunds_ShouldNotifySender()
     {
         // Arrange
@@ -58,7 +58,7 @@ public class WithdrawMoneyTests
         _notificationServiceMock.Verify(x => x.NotifyFundsLow(_sourceAccount.User.Email), Times.Once);
     }
 
-    [Fact(Skip = "Functionality is not implemented.")]
+    [Fact]
     public void Execute_WhenSourceAccountHasInsufficientFunds_ShouldThrowException()
     {
         // Arrange
