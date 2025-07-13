@@ -4,20 +4,11 @@ using System;
 
 namespace Moneybox.App.Features
 {
-    public class WithdrawMoney
+    public class WithdrawMoney(IAccountRepository accountRepository, INotificationService notificationService)
     {
-        private IAccountRepository accountRepository;
-        private INotificationService notificationService;
-
-        public WithdrawMoney(IAccountRepository accountRepository, INotificationService notificationService)
-        {
-            this.accountRepository = accountRepository;
-            this.notificationService = notificationService;
-        }
-
         public void Execute(Guid fromAccountId, decimal amount)
         {
-            var from = this.accountRepository.GetAccountById(fromAccountId);
+            var from = accountRepository.GetAccountById(fromAccountId);
 
             var fromBalance = from.Balance - amount;
             if (fromBalance < 0m)
@@ -27,13 +18,13 @@ namespace Moneybox.App.Features
 
             if (fromBalance < 500m)
             {
-                this.notificationService.NotifyFundsLow(from.User.Email);
+                notificationService.NotifyFundsLow(from.User.Email);
             }
 
             from.Balance = from.Balance - amount;
             from.Withdrawn = from.Withdrawn - amount;
 
-            this.accountRepository.Update(from);
+            accountRepository.Update(from);
         }
     }
 }

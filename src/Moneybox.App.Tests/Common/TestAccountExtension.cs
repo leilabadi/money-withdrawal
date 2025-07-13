@@ -1,4 +1,6 @@
-﻿namespace Moneybox.App.Tests.Common;
+﻿using Moneybox.App.Domain.Model;
+
+namespace Moneybox.App.Tests.Common;
 
 internal static class TestAccountExtension
 {

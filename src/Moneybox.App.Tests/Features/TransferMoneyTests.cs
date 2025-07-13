@@ -1,4 +1,5 @@
 using Moneybox.App.DataAccess;
+using Moneybox.App.Domain.Model;
 using Moneybox.App.Domain.Services;
 using Moneybox.App.Features;
 using Moneybox.App.Tests.Common;
