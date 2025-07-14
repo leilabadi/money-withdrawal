@@ -1,16 +1,17 @@
-﻿using Moneybox.App.Application;
-using Moneybox.App.Domain.Model;
+﻿using Moneybox.App.Domain.Model;
 using Moneybox.App.Domain.Repositories;
 using Moneybox.App.Domain.Services;
+using Moneybox.App.Features;
 using Moneybox.App.Tests.Common;
 
-namespace Moneybox.App.Tests.Application;
+namespace Moneybox.App.Tests.Features;
 
 public class WithdrawMoneyTests
 {
     private readonly Fixture _fixture = new();
     private readonly Mock<IAccountRepository> _accountRepositoryMock = new();
     private readonly Mock<INotificationService> _notificationServiceMock = new();
+    private readonly IMoneyWithdrawalService _moneyWithdrawalService;
     private readonly WithdrawMoney _withdrawMoney;
     private readonly Account _sourceAccount;
 
@@ -24,7 +25,9 @@ public class WithdrawMoneyTests
 
         _accountRepositoryMock.Setup(x => x.GetAccountById(_sourceAccount.Id)).Returns(_sourceAccount);
 
-        _withdrawMoney = new WithdrawMoney(_accountRepositoryMock.Object, _notificationServiceMock.Object);
+        _moneyWithdrawalService = new MoneyWithdrawalService(_notificationServiceMock.Object);
+
+        _withdrawMoney = new WithdrawMoney(_moneyWithdrawalService, _accountRepositoryMock.Object);
     }
 
     [Fact]

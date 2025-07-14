@@ -1,16 +1,17 @@
-using Moneybox.App.Application;
 using Moneybox.App.Domain.Model;
 using Moneybox.App.Domain.Repositories;
 using Moneybox.App.Domain.Services;
+using Moneybox.App.Features;
 using Moneybox.App.Tests.Common;
 
-namespace Moneybox.App.Tests.Application;
+namespace Moneybox.App.Tests.Features;
 
 public class TransferMoneyTests
 {
     private readonly Fixture _fixture = new();
     private readonly Mock<IAccountRepository> _accountRepositoryMock = new();
     private readonly Mock<INotificationService> _notificationServiceMock = new();
+    private readonly IMoneyTransferService _moneyTransferService;
     private readonly TransferMoney _transferMoney;
     private readonly Account _sourceAccount;
     private readonly Account _destinationAccount;
@@ -32,7 +33,9 @@ public class TransferMoneyTests
         _accountRepositoryMock.Setup(x => x.GetAccountById(_sourceAccount.Id)).Returns(_sourceAccount);
         _accountRepositoryMock.Setup(x => x.GetAccountById(_destinationAccount.Id)).Returns(_destinationAccount);
 
-        _transferMoney = new TransferMoney(_accountRepositoryMock.Object, _notificationServiceMock.Object);
+        _moneyTransferService = new MoneyTransferService(_notificationServiceMock.Object);
+
+        _transferMoney = new TransferMoney(_moneyTransferService, _accountRepositoryMock.Object);
     }
 
     [Fact]
