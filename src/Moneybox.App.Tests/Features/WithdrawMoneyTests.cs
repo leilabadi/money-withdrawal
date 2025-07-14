@@ -25,9 +25,9 @@ public class WithdrawMoneyTests
 
         _accountRepositoryMock.Setup(x => x.GetAccountById(_sourceAccount.Id)).Returns(_sourceAccount);
 
-        _moneyWithdrawalService = new MoneyWithdrawalService(_notificationServiceMock.Object);
+        _moneyWithdrawalService = new MoneyWithdrawalService();
 
-        _withdrawMoney = new WithdrawMoney(_moneyWithdrawalService, _accountRepositoryMock.Object);
+        _withdrawMoney = new WithdrawMoney(_moneyWithdrawalService, _accountRepositoryMock.Object, _notificationServiceMock.Object);
     }
 
     [Fact]

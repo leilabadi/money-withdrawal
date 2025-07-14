@@ -2,26 +2,21 @@
 
 namespace Moneybox.App.Domain.Services;
 
-public class MoneyWithdrawalService(INotificationService notificationService) : IMoneyWithdrawalService
+public class MoneyWithdrawalService : IMoneyWithdrawalService
 {
     public TransactionResult<MoneyWithdrawalTransaction> WithdrawMoney(MoneyWithdrawalTransaction transaction)
     {
+        var result = transaction.Validate();
+        if (!result.IsValid)
+        {
+            return TransactionResult<MoneyWithdrawalTransaction>.Failure(transaction, result.ErrorMessage!);
+        }
+
         var sourceAccount = transaction.SourceAccount;
-
-        var fromBalance = sourceAccount.Balance - transaction.Amount;
-        if (fromBalance < 0m)
-        {
-            return new TransactionResult<MoneyWithdrawalTransaction>(transaction, "Insufficient funds to make withdrawal");
-        }
-
-        if (fromBalance < Account.LowFundsThreshold)
-        {
-            notificationService.NotifyFundsLow(sourceAccount.User.Email);
-        }
 
         sourceAccount.Balance -= transaction.Amount;
         sourceAccount.Withdrawn -= transaction.Amount;
 
-        return new TransactionResult<MoneyWithdrawalTransaction>(transaction);
+        return TransactionResult<MoneyWithdrawalTransaction>.Success(transaction);
     }
 }

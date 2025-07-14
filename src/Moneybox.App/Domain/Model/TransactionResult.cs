@@ -1,14 +1,19 @@
 ﻿namespace Moneybox.App.Domain.Model;
 
-public class TransactionResult<T>(T transaction) where T : Transaction
+public record TransactionResult<T> where T : Transaction
 {
-    public T Transaction { get; init; } = transaction;
-    public bool IsSuccessful { get; private set; } = true;
-    public string? ErrorMessage { get; private set; } = null;
+    public T Transaction { get; }
+    public bool IsSuccessful { get; }
+    public string? ErrorMessage { get; }
 
-    public TransactionResult(T transaction, string errorMessage) : this(transaction)
+    private TransactionResult(T transaction, bool isSuccessful, string? errorMessage = null)
     {
-        IsSuccessful = false;
+        Transaction = transaction;
+        IsSuccessful = isSuccessful;
         ErrorMessage = errorMessage;
     }
+
+    public static TransactionResult<T> Success(T transaction) => new(transaction, true);
+
+    public static TransactionResult<T> Failure(T transaction, string errorMessage) => new(transaction, false, errorMessage);
 }

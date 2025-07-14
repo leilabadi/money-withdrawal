@@ -33,9 +33,9 @@ public class TransferMoneyTests
         _accountRepositoryMock.Setup(x => x.GetAccountById(_sourceAccount.Id)).Returns(_sourceAccount);
         _accountRepositoryMock.Setup(x => x.GetAccountById(_destinationAccount.Id)).Returns(_destinationAccount);
 
-        _moneyTransferService = new MoneyTransferService(_notificationServiceMock.Object);
+        _moneyTransferService = new MoneyTransferService();
 
-        _transferMoney = new TransferMoney(_moneyTransferService, _accountRepositoryMock.Object);
+        _transferMoney = new TransferMoney(_moneyTransferService, _accountRepositoryMock.Object, _notificationServiceMock.Object);
     }
 
     [Fact]
