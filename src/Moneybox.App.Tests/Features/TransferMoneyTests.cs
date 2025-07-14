@@ -1,7 +1,8 @@
+using Moneybox.App.Application;
+using Moneybox.App.Application.Features;
 using Moneybox.App.Domain.Model;
 using Moneybox.App.Domain.Repositories;
 using Moneybox.App.Domain.Services;
-using Moneybox.App.Features;
 using Moneybox.App.Tests.Common;
 
 namespace Moneybox.App.Tests.Features;
@@ -11,6 +12,7 @@ public class TransferMoneyTests
     private readonly Fixture _fixture = new();
     private readonly Mock<IAccountRepository> _accountRepositoryMock = new();
     private readonly Mock<INotificationService> _notificationServiceMock = new();
+    private readonly Mock<ITransaction> _transactionMock = new();
     private readonly IMoneyTransferService _moneyTransferService;
     private readonly TransferMoney _transferMoney;
     private readonly Account _sourceAccount;
@@ -35,7 +37,7 @@ public class TransferMoneyTests
 
         _moneyTransferService = new MoneyTransferService();
 
-        _transferMoney = new TransferMoney(_moneyTransferService, _accountRepositoryMock.Object, _notificationServiceMock.Object);
+        _transferMoney = new TransferMoney(_moneyTransferService, _accountRepositoryMock.Object, _notificationServiceMock.Object, _transactionMock.Object);
     }
 
     [Fact]
@@ -47,7 +49,7 @@ public class TransferMoneyTests
         decimal transferAmount = 300;
 
         // Act
-        _transferMoney.Execute(_sourceAccount.Id, _destinationAccount.Id, transferAmount);
+        _transferMoney.Execute(Guid.NewGuid(), _sourceAccount.Id, _destinationAccount.Id, transferAmount);
 
         // Assert
         _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Exactly(2));
@@ -64,7 +66,7 @@ public class TransferMoneyTests
         decimal transferAmount = 501;
 
         // Act
-        _transferMoney.Execute(_sourceAccount.Id, _destinationAccount.Id, transferAmount);
+        _transferMoney.Execute(Guid.NewGuid(), _sourceAccount.Id, _destinationAccount.Id, transferAmount);
 
         // Assert
         _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Exactly(2));
@@ -75,7 +77,7 @@ public class TransferMoneyTests
     }
 
     [Fact]
-    public void Execute_WhenSourceAccountHasInsufficientFunds_ShouldThrowException()
+    public void Execute_WhenSourceAccountHasInsufficientFunds_ShouldReturnFailure()
     {
         // Arrange
         _sourceAccount.Balance = 100;
@@ -83,12 +85,13 @@ public class TransferMoneyTests
         decimal transferAmount = 200;
 
         // Act
-        Action action = () => _transferMoney.Execute(_sourceAccount.Id, _destinationAccount.Id, transferAmount);
+        var result = _transferMoney.Execute(Guid.NewGuid(), _sourceAccount.Id, _destinationAccount.Id, transferAmount);
 
         // Assert
         _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Never);
 
-        action.Should().Throw<InvalidOperationException>().WithMessage("Insufficient funds to make transfer");
+        result.IsSuccessful.Should().BeFalse();
+        result.ErrorMessage.Should().Be("Insufficient funds to make transfer");
     }
 
     [Fact]
@@ -100,7 +103,7 @@ public class TransferMoneyTests
         decimal transferAmount = 3501;
 
         // Act
-        _transferMoney.Execute(_sourceAccount.Id, _destinationAccount.Id, transferAmount);
+        _transferMoney.Execute(Guid.NewGuid(), _sourceAccount.Id, _destinationAccount.Id, transferAmount);
 
         // Assert
         _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Exactly(2));
@@ -111,7 +114,7 @@ public class TransferMoneyTests
     }
 
     [Fact]
-    public void Execute_WhenDestinationAccountReachedPayInLimit_ShouldThrowException()
+    public void Execute_WhenDestinationAccountReachedPayInLimit_ShouldReturnFailure()
     {
         // Arrange
         _sourceAccount.Balance = 5000;
@@ -119,11 +122,78 @@ public class TransferMoneyTests
         decimal transferAmount = 4001;
 
         // Act
-        Action action = () => _transferMoney.Execute(_sourceAccount.Id, _destinationAccount.Id, transferAmount);
+        var result = _transferMoney.Execute(Guid.NewGuid(), _sourceAccount.Id, _destinationAccount.Id, transferAmount);
 
         // Assert
         _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Never);
 
-        action.Should().Throw<InvalidOperationException>().WithMessage("Account pay in limit reached");
+        result.IsSuccessful.Should().BeFalse();
+        result.ErrorMessage.Should().Be("Account pay in limit reached");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-100)]
+    public void Execute_WhenAmountIsNotPositive_ShouldThrowArgumentException(decimal invalidAmount)
+    {
+        // Act
+        var ex = Record.Exception(() =>
+            _transferMoney.Execute(Guid.NewGuid(), _sourceAccount.Id, _destinationAccount.Id, invalidAmount)
+        );
+
+        // Assert
+        ex.Should().BeOfType<ArgumentException>()
+            .Which.Message.Should().Contain("Amount must be positive");
+    }
+
+    [Fact]
+    public void Execute_WhenSourceAndDestinationAccountsAreTheSame_ShouldThrowArgumentException()
+    {
+        // Arrange
+        var sameAccountId = _sourceAccount.Id;
+        decimal transferAmount = 100;
+
+        // Act
+        var ex = Record.Exception(() =>
+            _transferMoney.Execute(Guid.NewGuid(), sameAccountId, sameAccountId, transferAmount)
+        );
+
+        // Assert
+        ex.Should().BeOfType<ArgumentException>()
+            .Which.Message.Should().Contain("Source and destination accounts must be different");
+    }
+
+    [Fact]
+    public void Execute_WhenSourceAccountDoesNotExist_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var nonExistentSourceId = Guid.NewGuid();
+        _accountRepositoryMock.Setup(x => x.GetAccountById(nonExistentSourceId)).Returns((Account?)null);
+
+        // Act
+        var ex = Record.Exception(() =>
+            _transferMoney.Execute(Guid.NewGuid(), nonExistentSourceId, _destinationAccount.Id, 100)
+        );
+
+        // Assert
+        ex.Should().BeOfType<InvalidOperationException>()
+            .Which.Message.Should().Contain("Source account not found");
+    }
+
+    [Fact]
+    public void Execute_WhenDestinationAccountDoesNotExist_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var nonExistentDestinationId = Guid.NewGuid();
+        _accountRepositoryMock.Setup(x => x.GetAccountById(nonExistentDestinationId)).Returns((Account?)null);
+
+        // Act
+        var ex = Record.Exception(() =>
+            _transferMoney.Execute(Guid.NewGuid(), _sourceAccount.Id, nonExistentDestinationId, 100)
+        );
+
+        // Assert
+        ex.Should().BeOfType<InvalidOperationException>()
+            .Which.Message.Should().Contain("Destination account not found");
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Moneybox.App.Domain.Model;
 
-public abstract class Transaction(decimal amount, DateTime date)
+public abstract class PaymentTransaction(decimal amount, DateTime date)
 {
     public Guid Id { get; } = Guid.NewGuid();
     public decimal Amount { get; } = amount;

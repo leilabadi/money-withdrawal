@@ -1,6 +1,6 @@
 ﻿namespace Moneybox.App.Domain.Model;
 
-public record TransactionResult<T> where T : Transaction
+public record TransactionResult<T> where T : PaymentTransaction
 {
     public T Transaction { get; }
     public bool IsSuccessful { get; }

@@ -2,7 +2,7 @@
 
 namespace Moneybox.App.Domain.Model;
 
-public class MoneyTransferTransaction : Transaction
+public class MoneyTransferTransaction : PaymentTransaction
 {
     public Account SourceAccount { get; }
     public Account DestinationAccount { get; }

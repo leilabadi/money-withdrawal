@@ -1,7 +1,8 @@
-﻿using Moneybox.App.Domain.Model;
+﻿using Moneybox.App.Application;
+using Moneybox.App.Application.Features;
+using Moneybox.App.Domain.Model;
 using Moneybox.App.Domain.Repositories;
 using Moneybox.App.Domain.Services;
-using Moneybox.App.Features;
 using Moneybox.App.Tests.Common;
 
 namespace Moneybox.App.Tests.Features;
@@ -11,6 +12,7 @@ public class WithdrawMoneyTests
     private readonly Fixture _fixture = new();
     private readonly Mock<IAccountRepository> _accountRepositoryMock = new();
     private readonly Mock<INotificationService> _notificationServiceMock = new();
+    private readonly Mock<ITransaction> _transactionMock = new();
     private readonly IMoneyWithdrawalService _moneyWithdrawalService;
     private readonly WithdrawMoney _withdrawMoney;
     private readonly Account _sourceAccount;
@@ -27,7 +29,7 @@ public class WithdrawMoneyTests
 
         _moneyWithdrawalService = new MoneyWithdrawalService();
 
-        _withdrawMoney = new WithdrawMoney(_moneyWithdrawalService, _accountRepositoryMock.Object, _notificationServiceMock.Object);
+        _withdrawMoney = new WithdrawMoney(_moneyWithdrawalService, _accountRepositoryMock.Object, _notificationServiceMock.Object, _transactionMock.Object);
     }
 
     [Fact]
@@ -38,7 +40,7 @@ public class WithdrawMoneyTests
         decimal withdrawAmount = 300;
 
         // Act
-        _withdrawMoney.Execute(_sourceAccount.Id, withdrawAmount);
+        _withdrawMoney.Execute(Guid.NewGuid(), _sourceAccount.Id, withdrawAmount);
 
         // Assert
         _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Once);
@@ -53,7 +55,7 @@ public class WithdrawMoneyTests
         decimal withdrawAmount = 501;
 
         // Act
-        _withdrawMoney.Execute(_sourceAccount.Id, withdrawAmount);
+        _withdrawMoney.Execute(Guid.NewGuid(), _sourceAccount.Id, withdrawAmount);
 
         // Assert
         _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Once);
@@ -63,18 +65,51 @@ public class WithdrawMoneyTests
     }
 
     [Fact]
-    public void Execute_WhenSourceAccountHasInsufficientFunds_ShouldThrowException()
+    public void Execute_WhenSourceAccountHasInsufficientFunds_ShouldReturnFailure()
     {
         // Arrange
         _sourceAccount.Balance = 100;
         decimal withdrawAmount = 200;
 
         // Act
-        Action action = () => _withdrawMoney.Execute(_sourceAccount.Id, withdrawAmount);
+        var result = _withdrawMoney.Execute(Guid.NewGuid(), _sourceAccount.Id, withdrawAmount);
 
         // Assert
         _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Never);
 
-        action.Should().Throw<InvalidOperationException>().WithMessage("Insufficient funds to make withdrawal");
+        result.IsSuccessful.Should().BeFalse();
+        result.ErrorMessage.Should().Be("Insufficient funds to make withdrawal");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-100)]
+    public void Execute_WhenAmountIsNotPositive_ShouldThrowArgumentException(decimal invalidAmount)
+    {
+        // Act
+        var ex = Record.Exception(() =>
+            _withdrawMoney.Execute(Guid.NewGuid(), _sourceAccount.Id, invalidAmount)
+        );
+
+        // Assert
+        ex.Should().BeOfType<ArgumentException>()
+            .Which.Message.Should().Contain("Amount must be positive");
+    }
+
+    [Fact]
+    public void Execute_WhenSourceAccountDoesNotExist_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var nonExistentSourceId = Guid.NewGuid();
+        _accountRepositoryMock.Setup(x => x.GetAccountById(nonExistentSourceId)).Returns((Account?)null);
+
+        // Act
+        var ex = Record.Exception(() =>
+            _withdrawMoney.Execute(Guid.NewGuid(), nonExistentSourceId, 100)
+        );
+
+        // Assert
+        ex.Should().BeOfType<InvalidOperationException>()
+            .Which.Message.Should().Contain("Source account not found");
     }
 }
