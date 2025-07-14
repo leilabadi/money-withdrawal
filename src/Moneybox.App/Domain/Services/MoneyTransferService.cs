@@ -12,7 +12,7 @@ public class MoneyTransferService(INotificationService notificationService) : IM
         var sourceBalance = sourceAccount.Balance - transaction.Amount;
         if (sourceBalance < 0m)
         {
-            throw new InvalidOperationException("Insufficient funds to make transfer");
+            return new TransactionResult<MoneyTransferTransaction>(transaction, "Insufficient funds to make transfer");
         }
 
         if (sourceBalance < Account.LowFundsThreshold)
@@ -23,7 +23,7 @@ public class MoneyTransferService(INotificationService notificationService) : IM
         var paidIn = destinationAccount.PaidIn + transaction.Amount;
         if (paidIn > Account.PayInLimit)
         {
-            throw new InvalidOperationException("Account pay in limit reached");
+            return new TransactionResult<MoneyTransferTransaction>(transaction, "Account pay in limit reached");
         }
 
         if (Account.PayInLimit - paidIn < Account.PayInWarningThreshold)

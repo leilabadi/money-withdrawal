@@ -11,7 +11,7 @@ public class MoneyWithdrawalService(INotificationService notificationService) : 
         var fromBalance = sourceAccount.Balance - transaction.Amount;
         if (fromBalance < 0m)
         {
-            throw new InvalidOperationException("Insufficient funds to make transfer");
+            return new TransactionResult<MoneyWithdrawalTransaction>(transaction, "Insufficient funds to make withdrawal");
         }
 
         if (fromBalance < Account.LowFundsThreshold)

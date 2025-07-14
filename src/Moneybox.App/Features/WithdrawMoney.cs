@@ -14,6 +14,11 @@ namespace Moneybox.App.Features
 
             var result = moneyWithdrawalService.WithdrawMoney(transaction);
 
+            if (!result.IsSuccessful)
+            {
+                throw new InvalidOperationException(result.ErrorMessage);
+            }
+
             accountRepository.Update(result.Transaction.SourceAccount);
         }
     }

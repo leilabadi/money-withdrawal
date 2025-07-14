@@ -75,6 +75,6 @@ public class WithdrawMoneyTests
         // Assert
         _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Never);
 
-        action.Should().Throw<InvalidOperationException>().WithMessage("Insufficient funds to make transfer");
+        action.Should().Throw<InvalidOperationException>().WithMessage("Insufficient funds to make withdrawal");
     }
 }

@@ -15,6 +15,11 @@ namespace Moneybox.App.Features
 
             var result = moneyTransferService.TransferMoney(transaction);
 
+            if (!result.IsSuccessful)
+            {
+                throw new InvalidOperationException(result.ErrorMessage);
+            }
+
             accountRepository.Update(result.Transaction.SourceAccount);
             accountRepository.Update(result.Transaction.DestinationAccount);
         }
