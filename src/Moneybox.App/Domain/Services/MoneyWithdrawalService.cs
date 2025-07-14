@@ -14,7 +14,7 @@ public class MoneyWithdrawalService : IMoneyWithdrawalService
 
         var sourceAccount = transaction.SourceAccount;
 
-        // In real applications, should add ledger entries to the account and create audit logs
+        // In real applications, should add ledger entries to the account and create audit logs and potentially charge fees
         sourceAccount.Balance -= transaction.Amount;
         sourceAccount.Withdrawn -= transaction.Amount;
 

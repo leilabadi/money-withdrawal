@@ -15,7 +15,7 @@ public class MoneyTransferService : IMoneyTransferService
         var sourceAccount = transaction.SourceAccount;
         var destinationAccount = transaction.DestinationAccount;
 
-        // In real applications, should add ledger entries to both accounts and create audit logs
+        // In real applications, should add ledger entries to both accounts and create audit logs and potentially charge fees
         sourceAccount.Balance -= transaction.Amount;
         sourceAccount.Withdrawn -= transaction.Amount;
 
