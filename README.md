@@ -24,3 +24,35 @@ As part of this process however, you should look to refactor some of the code in
 Once you have completed test, zip up your solution, excluding any build artifacts to reduce the size, and email it back to our recruitment team.
 
 Good luck!
+
+## Design Decisions
+
+### 1. Domain-Driven Design
+
+- **Separation of Concerns:** The domain logic is encapsulated in model classes (`Account`, `MoneyTransferTransaction`, `MoneyWithdrawalTransaction`) and service interfaces (`IMoneyTransferService`, `IMoneyWithdrawalService`). This separation allows for clear boundaries between business logic and application orchestration.
+- **Validation Logic:** Each transaction type (`MoneyTransferTransaction`, `MoneyWithdrawalTransaction`) contains its own `Validate()` method, ensuring that all business rules are enforced before any state changes occur.
+- **Event-Driven Warnings:** Domain events (e.g., `FundsLowEvent`, `ApproachingPayInLimitEvent`) are raised within validation methods to decouple warning/notification logic from core business logic.
+- **Domain Services** `MoneyTransferService` & `MoneyWithdrawalService` encapsulate the logic for updating account balances and tracking withdrawals/paid-in amounts. They return a `TransactionResult<T>` to indicate success or failure, along with error messages when appropriate.
+- **TransactionFactory:** Provides static methods to create transaction objects, centralizing the instantiation logic and ensuring consistent use of timestamps.
+
+### 2. Error Handling
+
+- **Business Validation:** I changed the code to checks for business rule violations and returns appropriate error messages rather than throwing exceptions.
+- **General Validation:** To ensuring that invalid data does not reach the domain layer, input validation is performed in application services throwing exceptions when necessary.
+- **Exception Handling:** Exceptions are caught in the application layer, to allow proper transaction handling and rollback if needed.
+
+### 3. Testability
+
+- **Mocking Dependencies:** Tests use Moq to mock repositories and notification services, allowing for isolated and deterministic unit tests.
+- **AutoFixture for Test Data:** AutoFixture is used to generate test data, reducing boilerplate and ensuring test coverage across a range of scenarios.
+- **FluentAssertions:** Used for expressive and readable assertions in tests.
+
+## 4. Suggestions for Future Improvements
+
+While the current implementation updates account balances, but a real world system would require the following features:
+
+- Using Outbox pattern to ensure reliable message delivery for notifications
+- Recording Ledger entries for each transaction
+- Adding Audit logs to track all changes and access
+- Potentially calculating and charging fees on transaction
+- Handling different currencies
