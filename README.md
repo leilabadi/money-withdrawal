@@ -32,7 +32,7 @@ Good luck!
 - **Separation of Concerns:** The domain logic is encapsulated in model classes (`Account`, `MoneyTransferTransaction`, `MoneyWithdrawalTransaction`) and service interfaces (`IMoneyTransferService`, `IMoneyWithdrawalService`). This separation allows for clear boundaries between business logic and application orchestration.
 - **Validation Logic:** Each transaction type (`MoneyTransferTransaction`, `MoneyWithdrawalTransaction`) contains its own `Validate()` method, ensuring that all business rules are enforced before any state changes occur.
 - **Event-Driven Warnings:** Domain events (e.g., `FundsLowEvent`, `ApproachingPayInLimitEvent`) are raised within validation methods to decouple warning/notification logic from core business logic.
-- **Domain Services** `MoneyTransferService` & `MoneyWithdrawalService` encapsulate the logic for updating account balances and tracking withdrawals/paid-in amounts. They return a `TransactionResult<T>` to indicate success or failure, along with error messages when appropriate.
+- **Domain Services:** `MoneyTransferService` & `MoneyWithdrawalService` encapsulate the logic for updating account balances and tracking withdrawals/paid-in amounts. They return a `TransactionResult<T>` to indicate success or failure, along with error messages when appropriate.
 - **TransactionFactory:** Provides static methods to create transaction objects, centralizing the instantiation logic and ensuring consistent use of timestamps.
 
 ### 2. Error Handling
